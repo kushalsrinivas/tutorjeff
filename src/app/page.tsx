@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -9,20 +10,34 @@ import {
   Plus,
   Gift,
   Bell,
-  // Collection,
-  // GraphUp,
-  // Person,
   Globe,
   Library,
   GitGraphIcon,
   User2Icon,
 } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 const App = () => {
-  const [decks] = useState([
-    { name: "mp module 2", cards: 102, color: "bg-orange-400" },
-    { name: "Untitled", cards: 0, color: "bg-purple-400" },
+  const router = useRouter();
+  const [decks, setDecks] = useState([
+    { id: uuidv4(), name: "mp module 2", cards: 102, color: "bg-orange-400" },
+    { id: uuidv4(), name: "Untitled", cards: 0, color: "bg-purple-400" },
   ]);
+  const [showModal, setShowModal] = useState(false);
+  const [newDeckName, setNewDeckName] = useState("");
+
+  const createDeck = () => {
+    const id = uuidv4();
+    const newDeck = {
+      id,
+      name: newDeckName || "Untitled",
+      cards: 0,
+      color: "bg-blue-400",
+    };
+    setDecks([...decks, newDeck]);
+    setNewDeckName("");
+    setShowModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -33,10 +48,16 @@ const App = () => {
             <span className="text-2xl font-bold">Gizmo</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="default" className="neo-brutal-button">
+            <Button
+              variant="default"
+              className="neo-brutal-button"
+              onClick={() => setShowModal(true)}
+            >
               Add deck
             </Button>
-            <Button className="neo-brutal-button bg-purple-900">Learn</Button>
+            <Button className="neo-brutal-button bg-purple-900 text-white">
+              Learn
+            </Button>
             <div className="flex gap-3">
               <Gift className="h-6 w-6" />
               <Search className="h-6 w-6" />
@@ -67,10 +88,14 @@ const App = () => {
               </ul>
             </Card>
 
-            <Button className="neo-brutal-button w-full bg-purple-900">
+            <Button className="neo-brutal-button w-full bg-purple-900 text-white">
               Learn
             </Button>
-            <Button variant="outline" className="neo-brutal-button w-full">
+            <Button
+              variant="default"
+              className="neo-brutal-button w-full"
+              onClick={() => setShowModal(true)}
+            >
               Add
             </Button>
 
@@ -83,8 +108,8 @@ const App = () => {
                 </div>
               </div>
               <ul className="space-y-2">
-                {decks.map((deck, index) => (
-                  <li key={index} className="flex items-center gap-2">
+                {decks.map((deck) => (
+                  <li key={deck.id} className="flex items-center gap-2">
                     <span
                       className={`h-3 w-3 rounded-full ${deck.color}`}
                     ></span>
@@ -111,10 +136,11 @@ const App = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {decks.map((deck, index) => (
+              {decks.map((deck) => (
                 <Card
-                  key={index}
+                  key={deck.id}
                   className={`neo-brutal-box ${deck.color} aspect-square p-6`}
+                  onClick={() => router.push(`/decks/${deck.id}`)}
                 >
                   <h3 className="mb-2 font-bold">{deck.name}</h3>
                   {deck.cards > 0 && (
@@ -122,13 +148,46 @@ const App = () => {
                   )}
                 </Card>
               ))}
-              <Card className="neo-brutal-box flex aspect-square cursor-pointer items-center justify-center bg-white p-6">
+              <Card
+                className="neo-brutal-box flex aspect-square cursor-pointer items-center justify-center bg-white p-6"
+                onClick={() => setShowModal(true)}
+              >
                 <Plus className="h-8 w-8" />
               </Card>
             </div>
           </main>
         </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="neo-brutal-box bg-white p-6">
+            <h2 className="mb-4 text-xl font-bold">Create a new deck</h2>
+            <input
+              type="text"
+              placeholder="Deck name"
+              value={newDeckName}
+              onChange={(e) => setNewDeckName(e.target.value)}
+              className="mb-4 w-full rounded border border-gray-300 p-2"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="default"
+                onClick={() => setShowModal(false)}
+                className="neo-brutal-button"
+              >
+                Cancel
+              </Button>
+              <Button
+                className="neo-brutal-button bg-blue-600 text-white"
+                onClick={createDeck}
+              >
+                Create
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .neo-brutal-box {
